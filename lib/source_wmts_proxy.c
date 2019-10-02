@@ -2,10 +2,11 @@
  * $Id$
  *
  * Project:  MapServer
- * Purpose:  MapCache tile caching support file: Mapserver Mapfile datasource
- * Author:   Thomas Bonfort and the MapServer team.
+ * Purpose:  MapCache tile caching support file: WMTS single tile passthrough proxy
+ * Author:   nls-jajuko@users.noreply.github.com
  *
  ******************************************************************************
+ * 
  * Copyright (c) 1996-2011 Regents of the University of Minnesota.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -66,9 +67,8 @@ void _mapcache_source_wmts_proxy_proxy_map(mapcache_context *ctx, mapcache_sourc
     int x = mt->tiles[0].x, y = mt->tiles[0].y, level = mt->tiles[0].z;
     
     matrix = mt->tiles[0].z;
-    /* compute the x,y of the request depending on the grid origin */
   
-     /* compute the x,y of the request depending on the grid origin */
+     /* revert col, row calculations */
     switch(grid_link->grid->origin) {
     case MAPCACHE_GRID_ORIGIN_BOTTOM_LEFT:
       col = x; // fixed
@@ -89,7 +89,7 @@ void _mapcache_source_wmts_proxy_proxy_map(mapcache_context *ctx, mapcache_sourc
     default:
       ctx->set_error(ctx,500,"BUG: invalid grid origin");
       return;
-  } 
+    } 
     
 
     map->encoded_data = mapcache_buffer_create(30000,ctx->pool);
@@ -100,21 +100,9 @@ void _mapcache_source_wmts_proxy_proxy_map(mapcache_context *ctx, mapcache_sourc
     GC_CHECK_ERROR(ctx);
     
    } else {
-     ctx->log(ctx,MAPCACHE_ERROR,"TILE ZXY NOT THERE / ntiles %d",mt->ntiles);
+      ctx->set_error(ctx,500,"BUG: no tile");
    }
-/*
-
- */
-
-
-  map->raw_image = mapcache_image_create(ctx);
-  map->raw_image->w = map->width;
-  map->raw_image->h = map->height;
-  map->raw_image->stride = 4 * map->width;
-  map->raw_image->data = malloc(map->width*map->height*4);
-  memset(map->raw_image->data,255,map->width*map->height*4);
-  apr_pool_cleanup_register(ctx->pool, map->raw_image->data,(void*)free, apr_pool_cleanup_null);
-}
+ }
 
 void _mapcache_source_wmts_proxy_query(mapcache_context *ctx, mapcache_source *psource, mapcache_feature_info *fi)
 {
