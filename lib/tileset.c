@@ -240,6 +240,7 @@ void mapcache_tileset_get_map_tiles(mapcache_context *ctx, mapcache_tileset *til
       tile->x = x;
       tile->y = y;
       tile->z = level;
+
       mapcache_tileset_tile_validate(ctx,tile);
       if(GC_HAS_ERROR(ctx)) {
         //clear the error message
@@ -491,7 +492,7 @@ void mapcache_tileset_render_metatile(mapcache_context *ctx, mapcache_metatile *
     ctx->set_error(ctx,500,"tileset_render_metatile called on tileset with no source or that is read-only");
     return;
   }
-  mapcache_source_render_map(ctx, tileset->source, &mt->map);
+  mapcache_source_proxy_map(ctx, tileset->source, mt, &mt->map);
   GC_CHECK_ERROR(ctx);
   mapcache_image_metatile_split(ctx, mt);
   GC_CHECK_ERROR(ctx);
@@ -584,6 +585,7 @@ mapcache_tile* mapcache_tileset_tile_clone(apr_pool_t *pool, mapcache_tile *src)
   tile->x = src->x;
   tile->y = src->y;
   tile->z = src->z;
+
   tile->allow_redirect = src->allow_redirect;
   return tile;
 }

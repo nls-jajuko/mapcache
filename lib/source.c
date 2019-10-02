@@ -39,6 +39,37 @@ void mapcache_source_init(mapcache_context *ctx, mapcache_source *source)
   source->retry_delay = 0.1;
 }
 
+void mapcache_source_proxy_map(mapcache_context *ctx, mapcache_source *source, mapcache_metatile *mt, mapcache_map *map) {
+  int i;
+#ifdef DEBUG
+  ctx->log(ctx, MAPCACHE_DEBUG, "calling render_map on source (%s): tileset=%s, grid=%s, extent=(%f,%f,%f,%f)",
+           source->name, map->tileset->name, map->grid_link->grid->name,
+           map->extent.minx, map->extent.miny, map->extent.maxx, map->extent.maxy);
+#endif
+  for(i=0;i<=source->retry_count;i++) {
+    if(i) { /* not our first try */
+      ctx->log(ctx, MAPCACHE_INFO, "source (%s) render_map retry %d of %d. previous try returned error: %s",
+               source->name, i, source->retry_count, ctx->get_error_message(ctx));
+      ctx->clear_errors(ctx);
+      if(source->retry_delay > 0) {
+        double wait = source->retry_delay;
+        int j = 0;
+        for(j=1;j<i;j++) /* sleep twice as long as before previous retry */
+          wait *= 2;
+        apr_sleep((int)(wait*1000000));  /* apr_sleep expects microseconds */
+      }
+    }
+    if( source->_proxy_map ) {
+      source->_proxy_map(ctx, source, mt, map);
+    } else {      
+      source->_render_map(ctx, source, map);
+    }
+    if(!GC_HAS_ERROR(ctx))
+      break;
+  }
+}
+
+
 void mapcache_source_render_map(mapcache_context *ctx, mapcache_source *source, mapcache_map *map) {
   int i;
 #ifdef DEBUG
@@ -59,7 +90,9 @@ void mapcache_source_render_map(mapcache_context *ctx, mapcache_source *source, 
         apr_sleep((int)(wait*1000000));  /* apr_sleep expects microseconds */
       }
     }
+   
     source->_render_map(ctx, source, map);
+    
     if(!GC_HAS_ERROR(ctx))
       break;
   }

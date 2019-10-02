@@ -366,6 +366,8 @@ void parseSource(mapcache_context *ctx, ezxml_t node, mapcache_cfg *config)
     source = mapcache_source_gdal_create(ctx);
   } else if(!strcmp(type,"dummy")) {
     source = mapcache_source_dummy_create(ctx);
+  } else if(!strcmp(type,"wmts_proxy")) {
+    source = mapcache_source_wmts_proxy_create(ctx);
   } else if(!strcmp(type,"fallback")) {
     source = mapcache_source_fallback_create(ctx);
   } else {

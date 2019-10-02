@@ -923,6 +923,7 @@ void _mapcache_service_wmts_parse_request(mapcache_context *ctx, mapcache_servic
     req->tiles[0]->z = level;
     req->tiles[0]->x = x;
     req->tiles[0]->y = y;
+
     /* no need to validate all the tiles as they all have the same x,y,z */
     mapcache_tileset_tile_validate_z(ctx,req->tiles[0]);
     if(GC_HAS_ERROR(ctx)) {

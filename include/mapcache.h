@@ -267,7 +267,8 @@ typedef enum {
   MAPCACHE_SOURCE_MAPSERVER,
   MAPCACHE_SOURCE_DUMMY,
   MAPCACHE_SOURCE_GDAL,
-  MAPCACHE_SOURCE_FALLBACK
+  MAPCACHE_SOURCE_FALLBACK,
+  MAPCACHE_SOURCE_WMTS_PROXY
 } mapcache_source_type;
 
 /**\interface mapcache_source
@@ -288,6 +289,7 @@ struct mapcache_source {
    * sets the mapcache_metatile::tile::data for the given tile
    */
   void (*_render_map)(mapcache_context *ctx, mapcache_source *psource, mapcache_map *map);
+  void (*_proxy_map)(mapcache_context *ctx, mapcache_source *psource, mapcache_metatile *mt, mapcache_map *map);
 
   void (*_query_info)(mapcache_context *ctx, mapcache_source *psource, mapcache_feature_info *fi);
 
@@ -908,6 +910,7 @@ void mapcache_source_init(mapcache_context *ctx, mapcache_source *source);
 /**
  * \memberof mapcache_source
  */
+void mapcache_source_proxy_map(mapcache_context *ctx, mapcache_source *source, mapcache_metatile *mt, mapcache_map *map);
 void mapcache_source_render_map(mapcache_context *ctx, mapcache_source *source, mapcache_map *map);
 void mapcache_source_query_info(mapcache_context *ctx, mapcache_source *source,
     mapcache_feature_info *fi);
@@ -933,6 +936,8 @@ mapcache_source* mapcache_source_wms_create(mapcache_context *ctx);
 mapcache_source* mapcache_source_mapserver_create(mapcache_context *ctx);
 
 mapcache_source* mapcache_source_dummy_create(mapcache_context *ctx);
+
+mapcache_source* mapcache_source_wmts_proxy_create(mapcache_context *ctx);
 
 /**
  * \memberof mapcache_cache_disk
