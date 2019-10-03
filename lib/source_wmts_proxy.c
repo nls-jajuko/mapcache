@@ -61,6 +61,7 @@ void _mapcache_source_wmts_proxy_proxy_map(mapcache_context *ctx, mapcache_sourc
     mapcache_grid_link *grid_link = map->grid_link;
     mapcache_http *http;
     int col, row, matrix ;
+    char *tilematrixset = grid_link->grid->name;
 
    if(mt->tiles && mt->ntiles==1) {
 
@@ -94,7 +95,7 @@ void _mapcache_source_wmts_proxy_proxy_map(mapcache_context *ctx, mapcache_sourc
 
     map->encoded_data = mapcache_buffer_create(30000,ctx->pool);
     http = mapcache_http_clone(ctx, src->http);
-    http->url = apr_psprintf(ctx->pool,http->url, "WGS84_Pseudo-Mercator", matrix,row,col);
+    http->url = apr_psprintf(ctx->pool,http->url, tilematrixset, matrix,row,col);
     ctx->log(ctx,MAPCACHE_WARN,"URL ZYX %s",http->url);   
     mapcache_http_do_request(ctx,http,map->encoded_data,NULL,NULL);
     GC_CHECK_ERROR(ctx);
@@ -106,7 +107,7 @@ void _mapcache_source_wmts_proxy_proxy_map(mapcache_context *ctx, mapcache_sourc
 
 void _mapcache_source_wmts_proxy_query(mapcache_context *ctx, mapcache_source *psource, mapcache_feature_info *fi)
 {
-  ctx->set_error(ctx,500,"dummy source does not support queries");
+  ctx->set_error(ctx,500,"wmts source does not support queries");
 }
 
 /**
@@ -142,7 +143,7 @@ mapcache_source* mapcache_source_wmts_proxy_create(mapcache_context *ctx)
 {
   mapcache_source_wmts_proxy *source = apr_pcalloc(ctx->pool, sizeof(mapcache_source_wmts_proxy));
   if(!source) {
-    ctx->set_error(ctx, 500, "failed to allocate dummy source");
+    ctx->set_error(ctx, 500, "failed to allocate wmts proxy source");
     return NULL;
   }
   mapcache_source_init(ctx, &(source->source));

@@ -1,4 +1,5 @@
 .*.swp
+.vscode/
 nbproject/
 /build/
 /build_vagrant/
