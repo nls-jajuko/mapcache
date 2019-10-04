@@ -50,34 +50,60 @@ void _mapcache_source_wmts_proxy_render_map(mapcache_context *ctx, mapcache_sour
 }
 
 
+char* _mapcache_source_wmts_get_tile_url(mapcache_context *ctx,
+  char *template, char* tilematrixset, int tilematrix, int tilerow, int tilecol, char *tilesetname, char *extension)
+{
+  char *path = apr_pstrdup(ctx->pool, template);
+
+  if(strstr(path,"{TileCol}"))
+    path = mapcache_util_str_replace(ctx->pool,path, "{TileCol}", apr_psprintf(ctx->pool,"%d",tilecol));
+  if(strstr(path,"{TileRow}"))
+    path = mapcache_util_str_replace(ctx->pool,path, "{TileRow}", apr_psprintf(ctx->pool,"%d",tilerow));
+  if(strstr(path,"{TileMatrix}"))
+    path = mapcache_util_str_replace(ctx->pool,path, "{TileMatrix}", apr_psprintf(ctx->pool,"%d",tilematrix));
+  if(strstr(path,"{TileMatrixSet}"))
+    path = mapcache_util_str_replace(ctx->pool,path, "{TileMatrixSet}", tilematrixset);
+  if(strstr(path,"{TileSetName}"))
+    path = mapcache_util_str_replace(ctx->pool,path, "{TileSetName}", tilesetname);
+  if(strstr(path,"{ext}"))
+    path = mapcache_util_str_replace(ctx->pool,path, "{ext}", extension);
+
+
+  return path;
+}
+
+
+
 void _mapcache_source_wmts_proxy_proxy_map(mapcache_context *ctx, mapcache_source *source, mapcache_metatile *mt, mapcache_map *map)
 {
-    /* 
-    mt->tiles[0].x;
-    mt->tiles[0].y;
-    mt->tiles[0].z;
-    */
-    mapcache_source_wmts_proxy *src = (mapcache_source_wmts_proxy*)source;
-    mapcache_grid_link *grid_link = map->grid_link;
-    mapcache_http *http;
-    int col, row, matrix ;
-    char *tilematrixset = grid_link->grid->name;
-
-   if(mt->tiles && mt->ntiles==1) {
-
-    int x = mt->tiles[0].x, y = mt->tiles[0].y, level = mt->tiles[0].z;
+  mapcache_source_wmts_proxy *src = (mapcache_source_wmts_proxy*)source;
+  mapcache_grid_link *grid_link = map->grid_link;
+  mapcache_http *http;
     
-    matrix = mt->tiles[0].z;
+  int col, row, matrix, x, y, level ;
+  char *tilematrixset = grid_link->grid->name;
+  char *extension = map->tileset->format->extension;
+  char *tilesetname = map->tileset->name;
   
-     /* revert col, row calculations */
-    switch(grid_link->grid->origin) {
+  if(!mt->tiles || mt->ntiles!=1) {
+    ctx->set_error(ctx,500,"BUG: no tile");
+    return;
+  }
+
+  x = mt->tiles[0].x;
+  y = mt->tiles[0].y;
+  level = mt->tiles[0].z;
+  matrix = mt->tiles[0].z;
+
+  /* revert x,y to col,row values */
+  switch(grid_link->grid->origin) {
     case MAPCACHE_GRID_ORIGIN_BOTTOM_LEFT:
-      col = x; // fixed
-      row = grid_link->grid->levels[level]->maxy - y - 1; // fixed
+      col = x; 
+      row = grid_link->grid->levels[level]->maxy - y - 1; 
       break;
     case MAPCACHE_GRID_ORIGIN_TOP_LEFT:
-      col = x; // fixed
-      row = y; // fixed
+      col = x;
+      row = y; 
       break;
     case MAPCACHE_GRID_ORIGIN_BOTTOM_RIGHT:
       col = grid_link->grid->levels[level]->maxx - x - 1;
@@ -85,24 +111,22 @@ void _mapcache_source_wmts_proxy_proxy_map(mapcache_context *ctx, mapcache_sourc
       break;
     case MAPCACHE_GRID_ORIGIN_TOP_RIGHT:
       col = grid_link->grid->levels[level]->maxx - x - 1;
-      row = y; // fixed
+      row = y; 
       break;
     default:
       ctx->set_error(ctx,500,"BUG: invalid grid origin");
       return;
-    } 
+  } 
     
 
-    map->encoded_data = mapcache_buffer_create(30000,ctx->pool);
-    http = mapcache_http_clone(ctx, src->http);
-    http->url = apr_psprintf(ctx->pool,http->url, tilematrixset, matrix,row,col);
-    ctx->log(ctx,MAPCACHE_WARN,"URL ZYX %s",http->url);   
-    mapcache_http_do_request(ctx,http,map->encoded_data,NULL,NULL);
-    GC_CHECK_ERROR(ctx);
+  map->encoded_data = mapcache_buffer_create(30000,ctx->pool);
+  http = mapcache_http_clone(ctx, src->http);
+//    http->url = apr_psprintf(ctx->pool,http->url, tilematrixset, matrix,row,col);
+  http->url = _mapcache_source_wmts_get_tile_url(ctx, http->url, tilematrixset, matrix, row, col, tilesetname, extension);
+  ctx->log(ctx,MAPCACHE_WARN,"URL %s from Template %s",http->url, src->http->url);   
+  mapcache_http_do_request(ctx,http,map->encoded_data,NULL,NULL);
+  GC_CHECK_ERROR(ctx);
     
-   } else {
-      ctx->set_error(ctx,500,"BUG: no tile");
-   }
  }
 
 void _mapcache_source_wmts_proxy_query(mapcache_context *ctx, mapcache_source *psource, mapcache_feature_info *fi)
