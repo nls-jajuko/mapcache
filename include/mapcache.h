@@ -268,7 +268,8 @@ typedef enum {
   MAPCACHE_SOURCE_DUMMY,
   MAPCACHE_SOURCE_GDAL,
   MAPCACHE_SOURCE_FALLBACK,
-  MAPCACHE_SOURCE_WMTS_PROXY
+  MAPCACHE_SOURCE_WMTS_PROXY,
+  MAPCACHE_SOURCE_OGC_API_TILES
 } mapcache_source_type;
 
 /**\interface mapcache_source
@@ -938,6 +939,8 @@ mapcache_source* mapcache_source_mapserver_create(mapcache_context *ctx);
 mapcache_source* mapcache_source_dummy_create(mapcache_context *ctx);
 
 mapcache_source* mapcache_source_wmts_proxy_create(mapcache_context *ctx);
+
+mapcache_source* mapcache_source_ogc_api_tiles_create(mapcache_context *ctx);
 
 /**
  * \memberof mapcache_cache_disk
