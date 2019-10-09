@@ -216,7 +216,7 @@ void _mapcache_source_ogc_api_tiles_proxy_map(mapcache_context *ctx, mapcache_so
 
   ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: map for %s",tilesetname);   
 
-  vtmap = _ogc_api_vtmap_get(src,tilesetname,NULL,NULL);
+  vtmap = _ogc_api_vtmap_get(src,tilesetname,NULL,grid_link->grid->name);
   if(!vtmap) {
     ctx->set_error(ctx,404,"not found");
     return;
