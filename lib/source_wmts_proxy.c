@@ -4,7 +4,10 @@
  * Project:  MapServer
  * Purpose:  MapCache tile caching support file: WMTS single tile passthrough proxy
  * Author:   nls-jajuko@users.noreply.github.com
- *
+ * Copyright (c) 2019 National Land Survey of Finland 
+ * 
+ ******************************************************************************
+ * Based on previous work
  ******************************************************************************
  * 
  * Copyright (c) 1996-2011 Regents of the University of Minnesota.
