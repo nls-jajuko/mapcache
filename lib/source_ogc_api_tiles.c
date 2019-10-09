@@ -273,7 +273,7 @@ void _mapcache_source_ogc_api_tiles_configuration_parse_xml(mapcache_context *ct
 
     char *name = (char*)ezxml_attr(map_node,"name");
     char *ver = (char*)ezxml_attr(map_node,"version");
-    char *grid = (char*)ezxml_attr(map_node,"tilematrixset");
+    char *grid = (char*)ezxml_attr(map_node,"grid");
     mapcache_source_ogc_api_vtmatrix *matrix;
 
     grid_node = ezxml_child(node,"grid");
