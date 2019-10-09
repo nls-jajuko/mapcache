@@ -4,6 +4,7 @@
  * Project:  MapServer
  * Purpose:  MapCache tile caching support file: OGCF tiles combining proxy
  * Author:   nls-jajuko@users.noreply.github.com
+ * Copyright (c) 2019 National Land Survey of Finland 
  *
  ******************************************************************************
  * 
