@@ -81,20 +81,23 @@ static mapcache_source_ogc_api_vtmatrix* _ogc_api_vtmatrix_create(apr_pool_t *po
   return vtmat;
 }
 
-mapcache_source_ogc_api_vtmap *_ogc_api_vtmap_get(mapcache_source_ogc_api_tiles *src, const char *name, const char *ver, const char* grid)
+mapcache_source_ogc_api_vtmap *_ogc_api_vtmap_get(mapcache_context *ctx, mapcache_source_ogc_api_tiles *src, const char *name, const char *ver, const char* grid)
 {
     mapcache_source_ogc_api_vtmap *map = NULL;
 
     int i = src->maps->nelts;
+
     while(i--) {
       mapcache_source_ogc_api_vtmap *entry = APR_ARRAY_IDX(src->maps,i,mapcache_source_ogc_api_vtmap*);
 
       if( strcmp( name, entry->name) ) {
           continue;
       }
+
       if( ver && entry->version && strcmp( ver, entry->version) ) {
           continue;
       }
+
       if( grid && entry->tilematrixset && strcmp( grid, entry->tilematrixset) ) {
           continue;
       }
@@ -167,6 +170,36 @@ char* _mapcache_source_ogc_api_tiles_get_tile_url(mapcache_context *ctx,
 }
 
 
+char* _mapcache_source_ogc_api_get_requested_dimension(apr_array_header_t *dimensions, const char *name ) {
+  int i;
+  if(!dimensions || dimensions->nelts <= 0) {
+    return NULL;
+  }
+  for(i=0;i<dimensions->nelts;i++) {
+    mapcache_requested_dimension *dim = APR_ARRAY_IDX(dimensions,i,mapcache_requested_dimension*);
+
+    if(!strcasecmp(dim->dimension->name,name)) {
+      return dim->requested_value;
+    }
+  }
+  return NULL;
+}
+
+char* _mapcache_source_ogc_api_get_default_dimension(apr_array_header_t *dimensions, const char *name ) {
+  int i;
+  if(!dimensions || dimensions->nelts <= 0) {
+    return NULL;
+  }
+  for(i=0;i<dimensions->nelts;i++) {
+    mapcache_requested_dimension *dim = APR_ARRAY_IDX(dimensions,i,mapcache_requested_dimension*);
+
+    if(!strcasecmp(dim->dimension->name,name)) {
+      return dim->dimension->default_value;
+    }
+  }
+  return NULL;
+}
+
 
 void _mapcache_source_ogc_api_tiles_proxy_map(mapcache_context *ctx, mapcache_source *source, mapcache_metatile *mt, mapcache_map *map)
 {
@@ -179,10 +212,18 @@ void _mapcache_source_ogc_api_tiles_proxy_map(mapcache_context *ctx, mapcache_so
   char *tilematrixset = grid_link->grid->name;
   char *extension = map->tileset->format->extension;
   char *tilesetname = map->tileset->name;
+  char *tileversion = NULL;
   
   if(!mt->tiles || mt->ntiles!=1) {
-    ctx->set_error(ctx,500,"BUG: no tile");
+    ctx->set_error(ctx,500,"BUG: no tile or metatile");
     return;
+  }
+
+  if( map->dimensions ) {
+    tileversion = _mapcache_source_ogc_api_get_requested_dimension(mt->tiles[0].dimensions,"TileVersion");
+  } 
+  if( !tileversion || !strcasecmp(tileversion,"latest") || !strcasecmp(tileversion,"default") ) {
+    tileversion = _mapcache_source_ogc_api_get_default_dimension(mt->tiles[0].dimensions,"TileVersion");
   }
 
   x = mt->tiles[0].x;
@@ -214,9 +255,10 @@ void _mapcache_source_ogc_api_tiles_proxy_map(mapcache_context *ctx, mapcache_so
 
   } 
 
-  ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: map for %s",tilesetname);   
+  ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: map for %s tilematrixset %s version %s",tilesetname,
+      tilematrixset, tileversion ? tileversion : "*");   
 
-  vtmap = _ogc_api_vtmap_get(src,tilesetname,NULL,grid_link->grid->name);
+  vtmap = _ogc_api_vtmap_get(ctx,src,tilesetname,tileversion,tilematrixset);
   if(!vtmap) {
     ctx->set_error(ctx,404,"not found");
     return;
