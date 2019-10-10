@@ -300,25 +300,18 @@ void _mapcache_source_ogc_api_tiles_query(mapcache_context *ctx, mapcache_source
   ctx->set_error(ctx,500,"ogc_api_tiles source does not support queries");
 }
 
-/**
- * \private \memberof mapcache_source_ogc_api_tiles
- * \sa mapcache_source::configuration_parse()
- */
-void _mapcache_source_ogc_api_tiles_configuration_parse_xml(mapcache_context *ctx, ezxml_t node, mapcache_source *source, mapcache_cfg *config)
-{
 
-  ezxml_t map_node, grid_node, matrix_node, http_node;
-  mapcache_source_ogc_api_tiles *src = (mapcache_source_ogc_api_tiles*)source;
-  mapcache_source_ogc_api_vtmap *map;
+void _mapcache_source_ogc_api_tiles_configuration_parse_map_xml(mapcache_context *ctx, ezxml_t map_node, mapcache_source_ogc_api_tiles *src, mapcache_cfg *config) {
 
-  for(map_node = ezxml_child(node,"map"); map_node; map_node = map_node->next) {
+    ezxml_t grid_node, matrix_node, http_node;
+    mapcache_source_ogc_api_vtmap *map;
 
     char *name = (char*)ezxml_attr(map_node,"name");
     char *ver = (char*)ezxml_attr(map_node,"version");
     char *grid = (char*)ezxml_attr(map_node,"grid");
     mapcache_source_ogc_api_vtmatrix *matrix;
 
-    grid_node = ezxml_child(node,"grid");
+    grid_node = ezxml_child(map_node,"grid");
 
     if( !name) {
         ctx->set_error(ctx, 400, "ogc_api_tiles: missing name map configuration");
@@ -339,33 +332,67 @@ void _mapcache_source_ogc_api_tiles_configuration_parse_xml(mapcache_context *ct
     map = _ogc_api_vtmap_create(ctx->pool,name,ver,grid);
 
     for(matrix_node = ezxml_child(map_node,"matrix"); matrix_node; matrix_node = matrix_node->next) {
-        char *level = (char*)ezxml_attr(matrix_node,"level");
-        int z ;
-        if( level) {
-            z = atoi(level);
-        }
-        matrix = _ogc_api_vtmatrix_create(ctx->pool, z);
+      char *level = (char*)ezxml_attr(matrix_node,"level");
+      int z ;
+      if( level) {
+        z = atoi(level);
+      }
+      matrix = _ogc_api_vtmatrix_create(ctx->pool, z);
 
-        ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: add matrix %d to  MAP %s", z, map->name);
+      ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: add matrix %d to  MAP %s", z, map->name);
 
-        for(http_node = ezxml_child(matrix_node,"http"); http_node; http_node = http_node->next) {
-            mapcache_http *http = mapcache_http_configuration_parse_xml(ctx,http_node);
-            if(!http) {
-               ctx->set_error(ctx, 400, "ogc_api_tiles: failed to parse http for matrix");
-               return;
-            }
-            ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: add http %s to matrix %d in MAP %s", http->url, z, map->name);
+      for(http_node = ezxml_child(matrix_node,"http"); http_node; http_node = http_node->next) {
+          mapcache_http *http = mapcache_http_configuration_parse_xml(ctx,http_node);
+          if(!http) {
+            ctx->set_error(ctx, 400, "ogc_api_tiles: failed to parse http for matrix");
+            return;
+          }
+          ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: add http %s to matrix %d in MAP %s", http->url, z, map->name);
 
-            APR_ARRAY_PUSH(matrix->urls,mapcache_http*) = http;
-         }
-        APR_ARRAY_PUSH(map->matrices,mapcache_source_ogc_api_vtmatrix*) = matrix;
-    }
-    _ogc_api_vtmap_add(src,map);
-  }
-  
-
-
+          APR_ARRAY_PUSH(matrix->urls,mapcache_http*) = http;
+      }
+      APR_ARRAY_PUSH(map->matrices,mapcache_source_ogc_api_vtmatrix*) = matrix;
+   }
+   _ogc_api_vtmap_add(src,map);
   // map -> matrix -> http 
+}
+
+  /**
+ * \private \memberof mapcache_source_ogc_api_tiles
+ * \sa mapcache_source::configuration_parse()
+ */
+void _mapcache_source_ogc_api_tiles_configuration_parse_xml(mapcache_context *ctx, ezxml_t node, mapcache_source *source, mapcache_cfg *config)
+{
+
+  ezxml_t doc;
+  char *filename;
+  ezxml_t map_node;
+  mapcache_source_ogc_api_tiles *src = (mapcache_source_ogc_api_tiles*)source;
+
+  for(map_node = ezxml_child(node,"map"); map_node; map_node = map_node->next) {
+
+    filename = (char*)ezxml_attr(map_node,"src");
+
+    if( filename ) {
+      ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: reading external map %s", filename);   
+
+      doc = ezxml_parse_file(filename);
+      if (doc == NULL) {
+        ctx->set_error(ctx,400, "failed to parse file %s. Is it valid XML?", filename);
+        return;
+      } 
+      if(strcmp(doc->name,"map")) {
+        ctx->set_error(ctx,400, "failed to parse file %s. first node is not <map>", filename);
+        ezxml_free(doc);
+        return;
+      }
+      _mapcache_source_ogc_api_tiles_configuration_parse_map_xml(ctx,doc,src,config);
+
+      ezxml_free(doc);
+    } else {
+      _mapcache_source_ogc_api_tiles_configuration_parse_map_xml(ctx,map_node,src,config);
+    }
+  }
 }
 
 /**
