@@ -119,7 +119,7 @@ mapcache_source_ogc_api_vtmatrix *_ogc_api_vtmatrix_get(mapcache_context *ctx, m
     mapcache_source_ogc_api_vtmatrix *matrix = NULL;
 
     int i = map->matrices->nelts;
-    ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: checking %d matrices for %s %d",i, map->name,level);   
+    ctx->log(ctx,MAPCACHE_DEBUG,"ogc_api_tiles: checking %d matrices for %s %d",i, map->name,level);   
 
     while(i--) {
       mapcache_source_ogc_api_vtmatrix *entry = APR_ARRAY_IDX(map->matrices,i,mapcache_source_ogc_api_vtmatrix*);
@@ -128,7 +128,7 @@ mapcache_source_ogc_api_vtmatrix *_ogc_api_vtmatrix_get(mapcache_context *ctx, m
           continue;
       }
     
-      ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: selecting %d matrix for %s %d",i, map->name,level);   
+      ctx->log(ctx,MAPCACHE_DEBUG,"ogc_api_tiles: selecting %d matrix for %s %d",i, map->name,level);   
 
       matrix = entry;
     }
@@ -255,7 +255,7 @@ void _mapcache_source_ogc_api_tiles_proxy_map(mapcache_context *ctx, mapcache_so
 
   } 
 
-  ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: map for %s tilematrixset %s version %s",tilesetname,
+  ctx->log(ctx,MAPCACHE_DEBUG,"ogc_api_tiles: map for %s tilematrixset %s version %s",tilesetname,
       tilematrixset, tileversion ? tileversion : "*");   
 
   vtmap = _ogc_api_vtmap_get(ctx,src,tilesetname,tileversion,tilematrixset);
@@ -264,7 +264,7 @@ void _mapcache_source_ogc_api_tiles_proxy_map(mapcache_context *ctx, mapcache_so
     return;
   }
 
-  ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: matrix for %s %d",tilesetname,matrix);   
+  ctx->log(ctx,MAPCACHE_DEBUG,"ogc_api_tiles: matrix for %s %d",tilesetname,matrix);   
 
   vtmatrix = _ogc_api_vtmatrix_get(ctx,vtmap, matrix);
   if(!vtmatrix) {
@@ -278,16 +278,16 @@ void _mapcache_source_ogc_api_tiles_proxy_map(mapcache_context *ctx, mapcache_so
 
   i = vtmatrix->urls->nelts;
 
-  ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: fetching tiles...%d",i);   
+  ctx->log(ctx,MAPCACHE_DEBUG,"ogc_api_tiles: fetching tiles...%d",i);   
   while(i--) {
     mapcache_http *http, *entry = APR_ARRAY_IDX(vtmatrix->urls,i,mapcache_http*);
 
-    ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: fetching tile %s",entry->url);   
+    ctx->log(ctx,MAPCACHE_DEBUG,"ogc_api_tiles: fetching tile %s",entry->url);   
 
     http = mapcache_http_clone(ctx, entry);
     http->url = _mapcache_source_ogc_api_tiles_get_tile_url(ctx, entry->url, tilematrixset, matrix, row, col, tilesetname, extension);
   
-    ctx->log(ctx,MAPCACHE_WARN,"URL %s from Template %s",http->url, entry->url);   
+    ctx->log(ctx,MAPCACHE_DEBUG,"URL %s from Template %s",http->url, entry->url);   
     mapcache_http_do_request(ctx,http,map->encoded_data,NULL,NULL);
     GC_CHECK_ERROR(ctx);
   }

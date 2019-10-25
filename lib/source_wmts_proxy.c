@@ -126,7 +126,7 @@ void _mapcache_source_wmts_proxy_proxy_map(mapcache_context *ctx, mapcache_sourc
   http = mapcache_http_clone(ctx, src->http);
 //    http->url = apr_psprintf(ctx->pool,http->url, tilematrixset, matrix,row,col);
   http->url = _mapcache_source_wmts_get_tile_url(ctx, http->url, tilematrixset, matrix, row, col, tilesetname, extension);
-  ctx->log(ctx,MAPCACHE_WARN,"URL %s from Template %s",http->url, src->http->url);   
+  ctx->log(ctx,MAPCACHE_DEBUG,"URL %s from Template %s",http->url, src->http->url);   
   mapcache_http_do_request(ctx,http,map->encoded_data,NULL,NULL);
   GC_CHECK_ERROR(ctx);
     
