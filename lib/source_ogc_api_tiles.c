@@ -208,7 +208,7 @@ void _mapcache_source_ogc_api_tiles_proxy_map(mapcache_context *ctx, mapcache_so
   mapcache_source_ogc_api_vtmap *vtmap;
   mapcache_source_ogc_api_vtmatrix *vtmatrix;
    
-  int col, row, matrix, x, y, level, i ;
+  int col, row, matrix, x, y, level, i, imax ;
   char *tilematrixset = grid_link->grid->name;
   char *extension = map->tileset->format->extension;
   char *tilesetname = map->tileset->name;
@@ -276,10 +276,10 @@ void _mapcache_source_ogc_api_tiles_proxy_map(mapcache_context *ctx, mapcache_so
   map->encoded_data = mapcache_buffer_create(30000,ctx->pool);
 
 
-  i = vtmatrix->urls->nelts;
+  imax = vtmatrix->urls->nelts;
 
-  ctx->log(ctx,MAPCACHE_DEBUG,"ogc_api_tiles: fetching tiles...%d",i);   
-  while(i--) {
+  ctx->log(ctx,MAPCACHE_DEBUG,"ogc_api_tiles: fetching tiles...%d",imax);   
+  for(i=0;i<imax;i++) {
     mapcache_http *http, *entry = APR_ARRAY_IDX(vtmatrix->urls,i,mapcache_http*);
 
     ctx->log(ctx,MAPCACHE_DEBUG,"ogc_api_tiles: fetching tile %s",entry->url);   
@@ -334,9 +334,13 @@ void _mapcache_source_ogc_api_tiles_configuration_parse_map_xml(mapcache_context
     for(matrix_node = ezxml_child(map_node,"matrix"); matrix_node; matrix_node = matrix_node->next) {
       char *level = (char*)ezxml_attr(matrix_node,"level");
       int z ;
-      if( level) {
-        z = atoi(level);
+
+      if( !level) {
+         ctx->set_error(ctx, 400, "ogc_api_tiles: missing name map configuration");
+        return;
       }
+      
+      z = atoi(level);
       matrix = _ogc_api_vtmatrix_create(ctx->pool, z);
 
       ctx->log(ctx,MAPCACHE_WARN,"ogc_api_tiles: add matrix %d to  MAP %s", z, map->name);
