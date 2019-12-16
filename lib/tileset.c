@@ -487,7 +487,7 @@ mapcache_source *mapcache_select_source(mapcache_context *ctx, mapcache_metatile
   // by grid name no other options
   int i = tileset->source_rules->nelts;
 
-  if( !tileset->source_rules ) {
+  if( !i ) {
     return tileset->source;
   }
 
