@@ -882,6 +882,8 @@ void parseTileset(mapcache_context *ctx, ezxml_t node, mapcache_cfg *config)
     }
     tileset->source = source;
   }
+  
+  tileset->source_rules = apr_array_make(ctx->pool,1,sizeof(mapcache_source_rule*));
 
   for(cur_node = ezxml_child(node,"source_rule"); cur_node; cur_node = cur_node->next) {
     mapcache_source_rule *source_rule = 0;
