@@ -478,6 +478,31 @@ mapcache_metatile* mapcache_tileset_metatile_get(mapcache_context *ctx, mapcache
   return mt;
 }
 
+
+mapcache_source *mapcache_select_source(mapcache_context *ctx, mapcache_metatile *mt, mapcache_tileset *tileset) {
+
+  mapcache_source *source = 0;
+
+  char *grid_name = mt->map.grid_link->grid->name;
+  // by grid name no other options
+  int i = tileset->source_rules->nelts;
+
+  if( !tileset->source_rules ) {
+    return tileset->source;
+  }
+
+  while(i--) {
+    mapcache_source_rule *entry = APR_ARRAY_IDX(tileset->source_rules,i,mapcache_source_rule*);
+
+    if( strcmp( grid_name, entry->grid_name) ) {
+      continue;
+    }
+    source = entry->source;
+    break;
+  }    
+  
+  return source;
+}
 /*
  * do the actual rendering and saving of a metatile:
  *  - query the datasource for the image data
@@ -487,12 +512,21 @@ mapcache_metatile* mapcache_tileset_metatile_get(mapcache_context *ctx, mapcache
 void mapcache_tileset_render_metatile(mapcache_context *ctx, mapcache_metatile *mt)
 {
   mapcache_tileset *tileset = mt->map.tileset;
+  mapcache_source *source = 0;
 
   if(!tileset->source || tileset->read_only) {
     ctx->set_error(ctx,500,"tileset_render_metatile called on tileset with no source or that is read-only");
     return;
   }
-  mapcache_source_proxy_map(ctx, tileset->source, mt, &mt->map);
+
+  source = mapcache_select_source(ctx,mt,tileset);
+// if not found set error
+  if( !source ) {
+    ctx->set_error(ctx,500,"tileset_render_metatile called on tileset with no matching source rules");
+    return;
+  }
+
+  mapcache_source_proxy_map(ctx, source, mt, &mt->map);
   GC_CHECK_ERROR(ctx);
   mapcache_image_metatile_split(ctx, mt);
   GC_CHECK_ERROR(ctx);

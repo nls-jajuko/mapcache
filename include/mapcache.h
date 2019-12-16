@@ -112,6 +112,8 @@ typedef struct mapcache_extent mapcache_extent;
 typedef struct mapcache_extent_i mapcache_extent_i;
 typedef struct mapcache_connection_pool mapcache_connection_pool;
 typedef struct mapcache_locker mapcache_locker;
+typedef struct mapcache_source_rule mapcache_source_rule;
+
 
 typedef enum {
   MAPCACHE_DIMENSION_VALUES,
@@ -537,6 +539,7 @@ struct mapcache_request_proxy {
   char *post_buf;
   size_t post_len;
 };
+
 
 
 
@@ -1161,7 +1164,16 @@ struct mapcache_tileset {
   mapcache_cfg *config;
 
   apr_table_t *metadata;
+
+  apr_array_header_t *source_rules;
 };
+
+struct mapcache_source_rule {
+  mapcache_source *source;    
+  char* grid_name;
+
+};
+
 
 
 mapcache_tileset* mapcache_tileset_clone(mapcache_context *ctx, mapcache_tileset *tileset);
