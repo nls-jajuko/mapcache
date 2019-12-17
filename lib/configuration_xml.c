@@ -917,6 +917,9 @@ void parseTileset(mapcache_context *ctx, ezxml_t node, mapcache_cfg *config)
 
     APR_ARRAY_PUSH(tileset->source_rules,mapcache_source_rule*) = source_rule;
 
+    ctx->log(ctx,MAPCACHE_WARN,"source-rule: added source rule to use source %s for grid %s", cur_node->txt, grid_name );
+
+
   }
 
 
