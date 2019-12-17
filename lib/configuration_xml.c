@@ -886,10 +886,22 @@ void parseTileset(mapcache_context *ctx, ezxml_t node, mapcache_cfg *config)
   tileset->source_rules = apr_array_make(ctx->pool,1,sizeof(mapcache_source_rule*));
 
   for(cur_node = ezxml_child(node,"source_rule"); cur_node; cur_node = cur_node->next) {
-    mapcache_source_rule *source_rule = 0;
-    mapcache_source *source = mapcache_configuration_get_source(config, cur_node->txt);
     char *grid_name = (char*)ezxml_attr(cur_node,"grid");
-    if(!source) {
+    mapcache_source_rule *source_rule ;
+    mapcache_source *source ;
+
+    if(!cur_node->txt ) {
+      ctx->set_error(ctx, 400, "tileset source rule without source");
+      return;
+    }
+    
+    source = mapcache_configuration_get_source(config, cur_node->txt);
+
+    if(!grid_name ) {
+      ctx->set_error(ctx, 400, "tileset source rule without grid not (yet) supported");
+      return;
+    }
+    if(!source ) {
       ctx->set_error(ctx, 400, "tileset source_rule references source \"%s\","
                      " but it is not configured", cur_node->txt);
       return;
