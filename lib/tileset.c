@@ -499,7 +499,7 @@ mapcache_source *mapcache_select_source(mapcache_context *ctx, mapcache_metatile
     }
     source = entry->source;
 
-    ctx->log(ctx,MAPCACHE_WARN,"source-rule: using source %s for grid %s", source->name, grid_name );
+    ctx->log(ctx,MAPCACHE_DEBUG,"source-rule: using source %s for grid %s", source->name, grid_name );
 
     break;
   }    
