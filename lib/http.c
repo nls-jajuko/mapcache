@@ -133,7 +133,7 @@ void mapcache_http_do_request(mapcache_context *ctx, mapcache_http *req, mapcach
   curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT, req->connection_timeout);
   curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, req->timeout);
   curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
-
+  curl_easy_setopt(curl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 1800L );
 
 
   if(req->headers) {
@@ -169,6 +169,7 @@ void mapcache_http_do_request(mapcache_context *ctx, mapcache_http *req, mapcach
     ctx->set_error(ctx, 502, "curl failed to request url %s : %s", req->url, error_msg);
   }
   /* cleanup curl stuff */
+  curl_slist_free_all(curl_headers);
   curl_easy_cleanup(curl_handle);
 }
 
