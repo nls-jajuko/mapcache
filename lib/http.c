@@ -166,7 +166,8 @@ void mapcache_http_do_request(mapcache_context *ctx, mapcache_http *req, mapcach
     curl_easy_getinfo (curl_handle, CURLINFO_RESPONSE_CODE, http_code);
 
   if(ret != CURLE_OK) {
-    ctx->set_error(ctx, 502, "curl failed to request url %s : %s", req->url, error_msg);
+    ctx->set_error(ctx, 502, "curl failed to request url %s ", error_msg);
+ 
   }
   /* cleanup curl stuff */
   curl_slist_free_all(curl_headers);
