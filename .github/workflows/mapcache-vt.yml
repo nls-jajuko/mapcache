@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Dependencies
-      run: sudo apt-get instll apache2-prefork-dev
+      run: sudo apt-get install apache2-prefork-dev
     - name: Prepare
       run: mkdir build
     - name: Configure
