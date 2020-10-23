@@ -1,0 +1,24 @@
+name: mapcache-vt CI build
+
+on: 
+  push:
+    branches: [ multisource ]
+    tags:
+    - v1.*
+
+jobs:
+  # Building using the github runner environement directly.
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Dependencies
+      run: sudo apt-get instll apache2-prefork-dev
+    - name: Prepare
+      run: mkdir build
+    - name: Configure
+      run: cmake -S. -Bbuild
+    - name: Build
+      run: make --build build -v
+    - name: Install
+      run: cmake --build build --target install -v -- DESTDIR=install
