@@ -3,7 +3,7 @@ Mapcache-vt
 
 .. image:: https://github.com/nls-jajuko/mapcache/workflows/mapcache-vt%20CI%20build/badge.svg?branch=multisource
 
-This repository contain a fork of mapcache (mapcache-vt) with some support for composite vector tiles and transparent wmts proxying.
+This repository contains a fork of mapcache (mapcache-vt) with some support for composite vector tiles and transparent wmts proxying.
 Composite Vector tiles support and proxy transparent wmts proxy operations by maanmittauslaitos.fi 
 
 
