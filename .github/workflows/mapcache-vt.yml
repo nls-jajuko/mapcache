@@ -18,8 +18,7 @@ jobs:
       run: mkdir build
     - name: Configure
       run: cmake -S. -Bbuild -DWITH_FCGI=0 -DWITH_SQLITE=0 -DWITH_PIXMAN=0 -DWITH_POSTGRESQL=0 -DWITH_BERKELEY_DB=0 -DWITH_MEMCACHE=0 -DWITH_TIFF=0 -DWITH_TIFF_WRITE_SUPPORT=0 -DWITH_GEOTIFF=0 -DWITH_PCRE=0 -DWITH_MAPSERVER=0 -DWITH_RIAK=0 -DWITH_MAPCACHE_DETAIL=0
-
-    - name: Build
-      run: make --build build -v
+    - name: Make
+      run: cd build && make && cd ..
     - name: Install
       run: cmake --build build --target install -v -- DESTDIR=install
